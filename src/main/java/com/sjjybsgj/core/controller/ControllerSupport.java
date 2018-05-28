@@ -25,7 +25,9 @@ package com.sjjybsgj.core.controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -34,10 +36,13 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.io.FileUtils;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
@@ -226,6 +231,19 @@ public abstract class ControllerSupport extends BaseSupport {
 		}
 		return null;
 	}
+	
+	
+//	@InitBinder
+//    public void initBinder(ServletRequestDataBinder binder) {
+//        /**
+//         * 自动转换日期类型的字段格式
+//         */
+//        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+//        binder.registerCustomEditor(Date.class, new CustomDateEditor(sdf, true));
+//
+//        
+//    }
+//	
 
 	/**
 	 * 文件下载方法<br>

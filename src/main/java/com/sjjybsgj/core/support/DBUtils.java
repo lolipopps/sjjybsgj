@@ -125,8 +125,7 @@ public class DBUtils {
 		}
 
 	}
-
-	public void getResult() {
+	public void getTableRel() {
 
 	}
 

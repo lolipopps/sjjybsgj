@@ -44,7 +44,25 @@
 	<aop:aspectj-autoproxy />
 
 	<!-- 自动注册 DefaultAnnotationHandlerMapping 与 AnnotationMethodHandlerAdapter 两个 bean, 解决了 @Controller 注解的使用前提配置 -->
-	<mvc:annotation-driven />
+	
+	
+	<mvc:annotation-driven>  
+    <!-- 处理responseBody 里面日期类型   <mvc:annotation-driven />-->  
+        <mvc:message-converters>  
+            <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">  
+                <property name="objectMapper">  
+                    <bean class="com.fasterxml.jackson.databind.ObjectMapper">  
+                        <property name="dateFormat">  
+                            <bean class="java.text.SimpleDateFormat">  
+                                <constructor-arg type="java.lang.String" value="yyyy-MM-dd HH:mm:ss" />  
+                            </bean>  
+                        </property>  
+                    </bean>  
+                </property>  
+            </bean>  
+        </mvc:message-converters>  
+    </mvc:annotation-driven>
+	
 	
 	<!-- 在 Controller 中开启生命式事物，在 @Controller 下的方法上使用 @Transactional -->
 	<tx:annotation-driven transaction-manager="transactionManager"/>
