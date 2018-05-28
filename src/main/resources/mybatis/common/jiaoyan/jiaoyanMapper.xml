@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sjjybsgj.common.jiaoyan.mapper.jiaoyanMapper">
+	<resultMap id="SourceDbMap" type="com.sjjybsgj.source_db.model.SourceDb">
+		<id column="DB_SOURCE_ID" jdbcType="VARCHAR" property="dbSourceId" />
+		<result column="USER_ID" jdbcType="VARCHAR" property="userId" />
+		<result column="CONNECT_NAME" jdbcType="VARCHAR" property="connectName" />
+		<result column="DB_NAME" jdbcType="VARCHAR" property="dbName" />
+		<result column="IP" jdbcType="VARCHAR" property="ip" />
+		<result column="PORT" jdbcType="INTEGER" property="port" />
+		<result column="DB_USER_NAME" jdbcType="VARCHAR" property="dbUserName" />
+		<result column="DB_PASSWORD" jdbcType="VARCHAR" property="dbPassword" />
+		<result column="DB_TYPE" jdbcType="INTEGER" property="dbType" />
+	</resultMap>
+
+  <resultMap id="TableRuleMap" type="com.sjjybsgj.rule_table.model.RuleTable">
+    <id column="RULE_ID" jdbcType="VARCHAR" property="ruleId" />
+    <result column="DB_NAME" jdbcType="VARCHAR" property="dbName" />
+    <result column="TABLE_NAME" jdbcType="VARCHAR" property="tableName" />
+    <result column="CLOUMN_NAME" jdbcType="VARCHAR" property="cloumnName" />
+    <result column="RANGE_VALUE" jdbcType="LONGVARCHAR" property="rangeValue" />
+    <result column="COMPLEX" jdbcType="LONGVARCHAR" property="complex" />
+  </resultMap>
+
+	 <!-- 这里是获取校验规则 -->
+	<select id="getjiaoyantableRule" resultType="java.util.Map" 
+		parameterType="java.lang.String">
+		SELECT * FROM rule_table where DB_NAME = #{dbName}
+	</select>
+
+	<!-- 获得一库里面所有表的规则-->
+	<select id="getjiaoyanSource" resultMap="SourceDbMap"
+		parameterType="java.util.HashMap">
+		SELECT * FROM SOURCE_DB WHERE USER_ID =
+		#{userId} AND
+		DB_NAME = #{dbName}
+	</select>
+
+
+</mapper>
