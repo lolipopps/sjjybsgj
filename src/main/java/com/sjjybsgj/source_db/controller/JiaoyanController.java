@@ -1,5 +1,6 @@
 package com.sjjybsgj.source_db.controller;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.sjjybsgj.checked_log.mapper.CheckedLogMapper;
+import com.sjjybsgj.checked_log.model.CheckedLog;
 import com.sjjybsgj.common.login.model.LoginUser;
 import com.sjjybsgj.core.annotation.MapperInject;
 import com.sjjybsgj.core.controller.BaseController;
@@ -58,7 +61,10 @@ public class JiaoyanController extends BaseController {
 
 	@MapperInject(StandardDbMapper.class)
 	private StandardDbMapper standardDbMapper;
-	
+
+	@MapperInject(CheckedLogMapper.class)
+	private CheckedLogMapper checkLogMapper;
+
 	@RequestMapping("/manage")
 	public String manage() {
 		return "common/jiaoyan/manage";
@@ -99,10 +105,14 @@ public class JiaoyanController extends BaseController {
 		paramMap.put("dbName", dbName);
 		paramMap.put("userId", userId);
 		System.out.println(dbName + " " + userId);
-		// 获取库的连接方式
-		SourceDb sourceDb = delegateMapper.selectOne("com.sjjybsgj.common.jiaoyan.mapper.jiaoyanMapper.getjiaoyanSource",
-				paramMap);
 
+		// 获取库的连接方式
+		SourceDb sourceDb = delegateMapper
+				.selectOne("com.sjjybsgj.common.jiaoyan.mapper.jiaoyanMapper.getjiaoyanSource", paramMap);
+		LoginUser user = this.getSessionUser();
+		CheckedLog record = new CheckedLog();
+		record.setUserId(userId);
+		record.setDbName(dbName);
 		if (sourceDb == null) {
 			status = "0";
 			message = "数据库连不上";
@@ -112,8 +122,8 @@ public class JiaoyanController extends BaseController {
 			List<Map<String, String>> ruleLists = delegateMapper
 					.selectList("com.sjjybsgj.common.jiaoyan.mapper.jiaoyanMapper.getjiaoyantableRule", dbName);
 			DBUtils dbutils = new DBUtils(sourceDb);
-			
-			LoginUser loguser =  this.getSessionUser();
+	
+			LoginUser loguser = this.getSessionUser();
 			for (Map<String, String> ruleList : ruleLists) { // 校验一个库里面的所有标准
 				System.out.println("这个规则: " + ruleList.values() + "总规则为: " + ruleLists.size());
 				String ruleId = ruleList.get("RULE_ID");
@@ -121,31 +131,64 @@ public class JiaoyanController extends BaseController {
 				String tableName = ruleList.get("TABLE_NAME");
 				String complex = ruleList.get("COMPLEX");
 				String cloumnName = ruleList.get("CLOUMN_NAME");
+
+				record.setLogId(this.getUUID());
+				record.setRuleId(ruleId);
+				record.setTableName(tableName);
+				record.setVaildDate(new Date());
+				record.setCloumnName(cloumnName);
+				
 				String results = "";
-				System.out.println(rangeValue+"----------"+complex);
+				String mss = "";
+				System.out.println(rangeValue + "----------" + complex);
 				if (rangeValue != null && !rangeValue.trim().equals("")) {
+
+					record.setRuleType(1);
+
 					String sql = dbutils.getRangeSql(rangeValue, dbName, tableName, cloumnName, dbType);
-					System.out.println(sql);
+
 					results = dbutils.execQuery(sql);
 					System.out.println(results);
 					if (results == null) {
-						System.out.println(tableName + " 字段 " + cloumnName + " " + rangeValue + "这个规则通过");
+						mss = "表: " + tableName + " 字段: " + cloumnName + " 规则: " + rangeValue + "通过";
+
+						record.setInfo(mss);
+						record.setIfPass(1);
+
 					} else {
-						System.out.println(tableName + " 字段 " + cloumnName + " " + rangeValue + "这个规则不通过");
+
+						mss = "表: " + tableName + " 字段:  " + cloumnName + " 规则: " + rangeValue + "这个规则不通过";
 						status = "0";
-						message = message + "表 " + tableName + "规则: " + rangeValue;
+						message = mss + "表 " + tableName + "规则: " + rangeValue;
+
+						record.setInfo(mss);
+						record.setIfPass(0);
+
 					}
+
+					checkLogMapper.insert(record);
+
 				}
 				if (complex != null && !complex.trim().equals("")) {
 					results = dbutils.execQuery(complex);
 					if (results == null) {
-						System.out.println(tableName + " 字段 " + cloumnName + " " + complex + "这个规则通过");
-						
+
+						mss = "表: " + tableName + " 字段: " + cloumnName + " 规则: " + complex + "通过";
+
+						record.setInfo(mss);
+						record.setIfPass(1);
+
 					} else {
-						System.out.println(tableName + " 字段 " + cloumnName + " " + complex + "这个不规则通过");
+						mss = "表: " + tableName + " 字段:  " + cloumnName + " 规则: " + complex + "这个规则不通过";
 						status = "0";
-						message = message + "表 " + tableName + "规则: " + complex;
+						message = mss + "表 " + tableName + "规则: " + complex;
+
+						record.setInfo(mss);
+						record.setIfPass(0);
 					}
+
+					checkLogMapper.insert(record);
+
 				}
 
 			}

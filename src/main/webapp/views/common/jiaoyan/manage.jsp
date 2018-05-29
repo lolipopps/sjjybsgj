@@ -26,8 +26,18 @@
 		</div>
 		<table id="table"></table>
 	</div>
+<!-- 实现一个等待的效果 -->
+<div class="modal fade" class="crudDialog" role="dialog" id="loadingModal" aria-hidden="true">
 
+	<div style="width: 200px;height:20px; z-index: 20000; position: absolute; text-align: center; 
+	left: 50%; top: 50%;margin-left:-100px;margin-top:-10px">
+	<div class="progress progress-striped active" style="margin-bottom: 0;">
+	<div class="progress-bar" style="width: 100%;"></div>
 
+</div>
+<h5 style="color:black"> <strong>正在校验数据...校验可能需要花费30秒左右,请稍等！</strong> </h5>
+</div>
+</div>
 </body>
 
 <script type="text/javascript">
@@ -82,9 +92,12 @@ $('#tableList').on('shown.bs.select',function(e) {  // shown.bs.select bootstrap
 
 //添加
 function jiaoyanAction() {
+	
 	var dbName = $('#tableList option:selected').val();//选中的值
 	var userId = '${user.userId}';  // 获取当前用户 Id
-	alert(userId);
+	$('#loadingModal').modal({backdrop: 'static', keyboard: true});  <!-- 模态框不会隐藏 -->
+	$("#loadingModal").modal('show');
+	
 	 $.ajax({
 	        url: '${pageContext.request.contextPath}/common/jiaoyan/jiaoyandb',//写你自己的方法
 	        type: "post", //数据发送方式
@@ -92,20 +105,20 @@ function jiaoyanAction() {
 	        dataType: "json",//后台处理后返回的数据格式
 	        success: function (data) {
 	    	    if (data.status == 0) {
+	    	    	$('#loadingModal').modal('hide');
 	    	    	alert("校验失败 失败的原因" + data.msg);
 	    		} else {
+	    			$('#loadingModal').modal('hide');
 	    			alert("校验成功" + data.msg);
 	        }
 	        },
 	        error: function (data) {
-	            alert("查询表格失败" + data);
+	        	$('#loadingModal').modal('hide');
+	            alert("校验失败 ,失败原因,数据库异常");
 	        }
 	        
 	    })
 	   
-	
-	    
-	    
 	    
 }
 // 删除

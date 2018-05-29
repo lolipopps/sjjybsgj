@@ -61,20 +61,20 @@
 			<property name="forceBigDecimals" value="false" />
 		</javaTypeResolver>
 
-		<javaModelGenerator targetPackage="com.sjjybsgj.rule_table.model" targetProject="${mbg.path}/java">
+		<javaModelGenerator targetPackage="com.sjjybsgj.checked_log.model" targetProject="${mbg.path}/java">
 			<property name="enableSubPackages" value="false" />
 			<property name="trimStrings" value="true" />
 		</javaModelGenerator>
 
-		<sqlMapGenerator targetPackage="mybatis.rule_table" targetProject="${mbg.path}/resources">
+		<sqlMapGenerator targetPackage="mybatis.checked_log" targetProject="${mbg.path}\resources">
 			<property name="enableSubPackages" value="false" />
 		</sqlMapGenerator>
 
-		<javaClientGenerator targetPackage="com.sjjybsgj.rule_table.mapper" targetProject="${mbg.path}/java" type="XMLMAPPER">
+		<javaClientGenerator targetPackage="com.sjjybsgj.checked_log.mapper" targetProject="${mbg.path}\java" type="XMLMAPPER">
 			<property name="enableSubPackages" value="false" />
 		</javaClientGenerator>
 
-		<table schema="" tableName="rule_table" />
+		<table schema="" tableName="checked_log" />
 
 	</context>
 </generatorConfiguration>
