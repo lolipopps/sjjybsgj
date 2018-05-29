@@ -35,26 +35,17 @@ import com.sjjybsgj.update_log.model.UpdateLog;
 /**
  * 名称：RoleController<br>
  *
- * 描述：角色管理模块<br>
+ * 描述：校验管理模块<br>
  *
- * @author Yanzheng 严正<br>
- *         时间：<br>
- *         2017-09-21 10:00:57<br>
- *         版权：<br>
- *         Copyright 2017 <a href="https://github.com/micyo202" target=
- *         "_blank">https://github.com/micyo202</a>. All rights reserved.
  */
 @Controller
 @RequestMapping("/common/jiaoyan")
 public class JiaoyanController extends BaseController {
 
-	private static final String NAMESPACE = "com.sjjybsgj.common.role.mapper.SysRoleCustomMapper";
+	private static final String NAMESPACE = "com.sjjybsgj.common.jiaoyan.mapper.jiaoyanMapper";
 
 	@MapperInject
 	private DelegateMapper delegateMapper;
-
-	@MapperInject(UpdateLogMapper.class)
-	private UpdateLogMapper mapper;
 
 	@MapperInject(SourceDbMapper.class)
 	private SourceDbMapper SourceDbMapper;
@@ -76,9 +67,9 @@ public class JiaoyanController extends BaseController {
 	 */
 	@RequestMapping(value = "/list", method = RequestMethod.POST)
 	@ResponseBody
-	public PageModel<UpdateLog> logList(int offset, int limit, String search, String sort, String order) {
+	public PageModel<CheckedLog> logList(int offset, int limit, String search, String sort, String order) {
 		this.offsetPage(offset, limit);
-		List<UpdateLog> list = mapper.selectByExample(null);
+		List<CheckedLog> list = checkLogMapper.selectByExample(null);
 		return this.resultPage(list);
 	}
 
@@ -101,16 +92,16 @@ public class JiaoyanController extends BaseController {
 	public MsgModel jiaoyandb(String dbName, String userId) {
 		String status = "1";
 		String message = "";
-		Map<String, Object> paramMap = new HashMap<>();
+		Map<String, String> paramMap = new HashMap<>();
 		paramMap.put("dbName", dbName);
 		paramMap.put("userId", userId);
 		System.out.println(dbName + " " + userId);
 
 		// 获取库的连接方式
-		SourceDb sourceDb = delegateMapper
-				.selectOne("com.sjjybsgj.common.jiaoyan.mapper.jiaoyanMapper.getjiaoyanSource", paramMap);
+		SourceDb sourceDb = delegateMapper.selectOne(NAMESPACE + ".getjiaoyanSource", paramMap);
 		LoginUser user = this.getSessionUser();
 		CheckedLog record = new CheckedLog();
+		record.setUserName(user.getUserName());
 		record.setUserId(userId);
 		record.setDbName(dbName);
 		if (sourceDb == null) {
@@ -119,16 +110,17 @@ public class JiaoyanController extends BaseController {
 		} else {
 			String dbType = sourceDb.getDbType();
 			// 得到了带校验的表
-			List<Map<String, String>> ruleLists = delegateMapper
-					.selectList("com.sjjybsgj.common.jiaoyan.mapper.jiaoyanMapper.getjiaoyantableRule", dbName);
+			List<Map<String, String>> ruleLists = delegateMapper.selectList(NAMESPACE + ".getjiaoyantableRule", dbName);
 			DBUtils dbutils = new DBUtils(sourceDb);
-	
-			LoginUser loguser = this.getSessionUser();
+			List<String> tableNames = delegateMapper.selectList(NAMESPACE + ".getUpdatedTabel", userId);
 			for (Map<String, String> ruleList : ruleLists) { // 校验一个库里面的所有标准
+				String tableName = ruleList.get("TABLE_NAME");
+				if(tableNames.contains(tableName)) {
+					break;  // 如果上传成功就不用校验了
+				}
 				System.out.println("这个规则: " + ruleList.values() + "总规则为: " + ruleLists.size());
 				String ruleId = ruleList.get("RULE_ID");
 				String rangeValue = ruleList.get("RANGE_VALUE");
-				String tableName = ruleList.get("TABLE_NAME");
 				String complex = ruleList.get("COMPLEX");
 				String cloumnName = ruleList.get("CLOUMN_NAME");
 
@@ -137,13 +129,13 @@ public class JiaoyanController extends BaseController {
 				record.setTableName(tableName);
 				record.setVaildDate(new Date());
 				record.setCloumnName(cloumnName);
-				
+
 				String results = "";
 				String mss = "";
 				System.out.println(rangeValue + "----------" + complex);
 				if (rangeValue != null && !rangeValue.trim().equals("")) {
 
-					record.setRuleType(1);
+					record.setRuleType("校验");
 
 					String sql = dbutils.getRangeSql(rangeValue, dbName, tableName, cloumnName, dbType);
 
@@ -192,6 +184,7 @@ public class JiaoyanController extends BaseController {
 				}
 
 			}
+			dbutils.closeConn();
 		}
 
 		return new MsgModel(status, message);
